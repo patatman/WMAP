@@ -11,41 +11,46 @@
   The minimum screen size is 320 x 240 as that is the keypad size.
 */
 //------------------------------------------------------------------------------------------
-
-// The SPIFFS (FLASH filing system) is used to hold touch screen
-// calibration data
-
-#include "FS.h"
-
-#include <SPI.h>
-#include <TFT_eSPI.h>      // Hardware-specific library
-
-TFT_eSPI tft = TFT_eSPI(); // Invoke custom library
-
 //------------------------------------------------------------------------------------------
-
-// Setup WiFi settings and add the correct library
-#include <ESP8266WiFi.h>
-
+// Setup section
+// Here you must put all your personal settings for this to work in your environment.
+//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------
+// WiFi settings
 #ifndef STASSID
 #define STASSID "WIFI GOES HERE
 #define STAPSK  "PASSWORD GOES HERE"
 #endif
+const char* ssid     = STASSID; //This is from the esp example, might not be needed.
+const char* password = STAPSK; //This is from the esp example, might not be needed.
 
-const char* ssid     = STASSID;
-const char* password = STAPSK;
+// MQTT settings
+#define mqtt_server "ip of mqtt server"
+#define mqtt_user "mqtt user goes here"
+#define mqtt_pass "mqtt password goes here"
 
-const char* host = "Alarmpanel1";
+// Alarm panel settings
+#define alarm_code "Alarm pin goes here"
 
 //------------------------------------------------------------------------------------------
-
-// Setup MQTT client
+//------------------------------------------------------------------------------------------
+// Libraries to include
+//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------
+#include <ESP8266WiFi.h>
+#include "FS.h"
+#include <SPI.h>
+#include <TFT_eSPI.h>      // Hardware-specific library
+TFT_eSPI tft = TFT_eSPI(); // Invoke custom library
 #include <PubSubClient.h>
+
+
+//------------------------------------------------------------------------------------------
 
 IPAddress server(192, 168, 1, XX);
 
 WiFiClient espClient;
-PubSubClient client(server, 1883, espClient);
+PubSubClient client(mqtt_server, 1883, espClient);
 char msg[50];
 int value = 0;
 
@@ -140,7 +145,7 @@ void reconnect() {
     String clientId = "ESP8266-alarm-Client-";
     clientId += String(random(0xffff), HEX);
     // Attempt to connect
-    if (client.connect(clientId.c_str(), "MQQT_USER","MQTT_PASSWORD")) {
+    if (client.connect(clientId.c_str(), mqtt_user, mqtt_pass)) {
       Serial.println("connected");
       tft.println("connected");
       // Once connected, publish an announcement...
