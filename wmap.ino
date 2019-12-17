@@ -47,7 +47,7 @@ TFT_eSPI tft = TFT_eSPI(); // Invoke custom library
 
 //------------------------------------------------------------------------------------------
 
-IPAddress server(192, 168, 1, XX);
+//IPAddress server(192, 168, 1, XX);
 
 WiFiClient espClient;
 PubSubClient client(mqtt_server, 1883, espClient);
@@ -149,7 +149,7 @@ void reconnect() {
       Serial.println("connected");
       tft.println("connected");
       // Once connected, publish an announcement...
-      client.publish("alarmpanel1/status", "Connected");
+      client.publish(mqtt_topic"/status", "Connected");
       // ... and resubscribe
       client.subscribe("inTopic");
     } else {
@@ -171,18 +171,16 @@ void setup() {
   Serial.begin(115200);
   // Initialise the TFT screen
   tft.init();
+  // Set the rotation before we calibrate
+  tft.setRotation(0);
+  // Calibrate the touch screen and retrieve the scaling factors
+  touch_calibrate();
   setup_wifi();
   reconnect();
   Serial.println("");
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
- 
-  // Set the rotation before we calibrate
-  tft.setRotation(0);
-
-  // Calibrate the touch screen and retrieve the scaling factors
-  touch_calibrate();
 
   tft.fillScreen(TFT_BLACK);
   
@@ -268,19 +266,19 @@ void loop(void) {
         status(""); // Clear the old status
       }
 
-      if ( b == 2  && (numberBuffer) == '5555') {
+      if ( b == 2  & (numberBuffer) == (alarm_code)) {
         status("Sent Unarmed value to serial port");
         Serial.println(numberBuffer);
-        client.publish("alarmpanel1/code", (numberBuffer));
-        client.publish("alarmpanel1/status", ("Disarm"));
+        client.publish(mqtt_topic"/code", (numberBuffer));
+        client.publish(mqtt_topic"/status", ("Disarm"));
         numberIndex = 0; //Reset index to 0
         numberBuffer[numberIndex] = 0; //Place null in buffer
       }
-      if ( b == 2 && (numberBuffer) != '5555') ) {
+      if ( b == 2 & (numberBuffer) != (alarm_code)) {
         status("WRONG CODE!!");
         Serial.println(numberBuffer);
-        client.publish("alarmpanel1/code", (numberBuffer));
-        client.publish("alarmpanel1/status", ("WRONG CODE"));
+        client.publish(mqtt_topic"/code", (numberBuffer));
+        client.publish(mqtt_topic"/status", ("WRONG CODE"));
         numberIndex = 0; //Reset index to 0
         numberBuffer[numberIndex] = 0; //Place null in buffer
       }
@@ -289,8 +287,8 @@ void loop(void) {
       if (b == 0) {
         status("Sent Armed value to serial port");
         Serial.println(numberBuffer);
-        client.publish("alarmpanel1/code", (numberBuffer));
-        client.publish("alarmpanel1/status", "Armed");
+        client.publish(mqtt_topic"/code", (numberBuffer));
+        client.publish(mqtt_topic"/status", "Armed");
         numberIndex = 0; // Reset index to 0
         numberBuffer[numberIndex] = 0; // Place null in buffer
       }
